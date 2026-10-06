@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EighteenMiles — Your First Milestones (Free Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#FFF3E9; --ink:#1A1A2E; --pink:#FF3D77; --purple:#7C3AED; --lime:#C6F135; --sky:#4CC9F0; --orange:#FF8A3D; --card:#FFFFFF; --line:rgba(26,26,46,0.10); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5; padding-top:46px; }
+  h1,h2,h3{ font-family:'Space Grotesk',sans-serif; font-weight:700; margin:0; color:var(--ink); }
+  a{ color:var(--purple); }
+  #confetti-canvas{ position:fixed; inset:0; z-index:60; pointer-events:none; display:none; }
+
+  /* DEMO BANNER */
+  #demo-banner{
+    position:fixed; top:0; left:0; right:0; z-index:45;
+    background: var(--ink); color:#fff;
+    padding: 10px 14px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    font-size:0.82rem; font-weight:600; text-align:center; flex-wrap:wrap;
+  }
+  #demo-banner .pill{ background:var(--lime); color:var(--ink); padding:4px 10px; border-radius:100px; font-size:0.72rem; font-weight:700; }
+  #demo-banner a{
+    background: var(--pink); color:#fff; text-decoration:none; padding:6px 14px; border-radius:100px; font-weight:700; font-size:0.78rem;
+  }
+
+  #gate{ position:fixed; inset:0; z-index:50; background: linear-gradient(160deg, var(--purple) 0%, var(--pink) 100%); display:flex; align-items:center; justify-content:center; padding:24px; }
+  .gate-card{ background:var(--card); border-radius:24px; max-width:380px; width:100%; padding:44px 30px; text-align:center; box-shadow:0 30px 70px rgba(0,0,0,0.35); }
+  .gate-emoji{ font-size:3.2rem; margin-bottom:10px; }
+  .gate-card h2{ font-size:1.5rem; margin-bottom:8px; }
+  .gate-card p{ color:#6b6b78; font-size:0.92rem; margin:0 0 22px; }
+  #gate-btn{ width:100%; padding:14px; background:var(--pink); color:#fff; border:none; border-radius:14px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; cursor:pointer; }
+  #gate-btn:hover{ background:var(--purple); }
+
+  #app{ display:none; }
+  .wrap{ max-width:760px; margin:0 auto; padding:0 24px; }
+  #tab-bar{ position:sticky; top:46px; z-index:30; background:rgba(255,243,233,0.92); backdrop-filter:blur(10px); padding:14px 24px; display:flex; justify-content:center; gap:10px; border-bottom:1px solid var(--line); }
+  .tab-btn{ border:2px solid var(--ink); background:transparent; color:var(--ink); padding:9px 18px; border-radius:100px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .tab-btn.active{ background:var(--ink); color:#fff; }
+  .page{ display:none; } .page.active{ display:block; }
+
+  .hero{ color:#fff; padding:56px 0 90px; position:relative; overflow:hidden; border-radius:0 0 40px 40px; }
+  .hero.vote-hero{ background:linear-gradient(150deg, var(--purple) 0%, #B23BFF 45%, var(--pink) 100%); }
+  .hero.drive-hero{ background:linear-gradient(150deg, var(--orange) 0%, #FF3D77 55%, var(--purple) 100%); }
+  .hero-badge{ display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.18); padding:6px 14px; border-radius:100px; font-size:0.78rem; font-weight:600; margin-bottom:20px; }
+  .hero h1{ font-size:clamp(2.1rem,6.6vw,3rem); line-height:1.08; max-width:13ch; }
+  .hero p.lede{ margin-top:18px; max-width:46ch; color:rgba(255,255,255,0.92); font-size:1.05rem; font-weight:500; }
+  .hero-sticker{ position:absolute; right:20px; top:26px; font-size:3.2rem; transform:rotate(12deg); opacity:0.9; }
+
+  section{ padding:50px 0; }
+  .section-head{ margin-bottom:28px; }
+  .section-head .kicker{ display:inline-block; font-size:0.78rem; color:var(--purple); font-weight:700; background:rgba(124,58,237,0.1); padding:4px 12px; border-radius:100px; margin-bottom:12px; }
+  .section-head h2{ font-size:1.6rem; }
+  .section-head p{ color:#5c5c6b; margin-top:10px; max-width:56ch; }
+
+  .tiers{ display:flex; flex-direction:column; gap:14px; }
+  .tier{ background:var(--card); border-radius:20px; padding:22px; display:grid; grid-template-columns:56px 1fr; gap:16px; box-shadow:0 6px 20px rgba(26,26,46,0.06); border:2px solid transparent; }
+  .tier .emoji{ font-size:2rem; }
+  .tier .meta{ font-size:0.78rem; color:var(--purple); font-weight:700; margin-bottom:4px; text-transform:uppercase; }
+  .tier h3{ font-size:1.12rem; margin-bottom:6px; }
+  .tier p{ margin:0; color:#5c5c6b; font-size:0.93rem; }
+
+  .journey{ display:flex; flex-direction:column; gap:12px; }
+  .step{ background:var(--card); border-radius:18px; padding:18px 20px; display:grid; grid-template-columns:40px 1fr; gap:14px; box-shadow:0 6px 18px rgba(26,26,46,0.05); }
+  .step .num{ width:36px; height:36px; background:var(--lime); color:var(--ink); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; }
+  .drive-page .step .num{ background:var(--orange); }
+  .step h3{ font-size:1.03rem; margin-bottom:4px; }
+  .step p{ margin:0; color:#5c5c6b; font-size:0.92rem; }
+
+  .doc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .doc-card{ background:var(--card); border-radius:18px; padding:20px; box-shadow:0 6px 18px rgba(26,26,46,0.05); }
+  .doc-card h3{ font-size:1rem; margin-bottom:12px; }
+  .doc-card ul{ margin:0; padding-left:18px; color:#5c5c6b; font-size:0.9rem; }
+  .doc-card li{ margin-bottom:7px; }
+  .doc-note{ grid-column:1/-1; font-size:0.85rem; color:#5c5c6b; background:rgba(198,241,53,0.25); padding:14px 16px; border-radius:14px; }
+  .drive-page .doc-note{ background:rgba(255,138,61,0.18); }
+
+  .link-grid{ display:grid; gap:12px; }
+  .link-row{ display:flex; justify-content:space-between; align-items:center; background:var(--card); border-radius:16px; padding:15px 18px; text-decoration:none; color:inherit; box-shadow:0 6px 18px rgba(26,26,46,0.05); }
+  .link-row .lbl b{ display:block; font-size:0.95rem; } .link-row .lbl span{ font-size:0.8rem; color:#6b6b78; }
+  .link-row .go{ color:var(--pink); font-size:1.2rem; }
+
+  .school-grid{ display:flex; flex-direction:column; gap:12px; }
+  .school-card{ background:var(--card); border-radius:18px; padding:18px 20px; box-shadow:0 6px 18px rgba(26,26,46,0.05); display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; }
+  .school-rank{ font-family:'Space Grotesk',sans-serif; font-weight:700; color:var(--orange); font-size:0.8rem; }
+  .school-card h3{ font-size:1.02rem; margin:2px 0 4px; }
+  .school-meta{ font-size:0.84rem; color:#5c5c6b; }
+  .school-rating{ font-size:0.82rem; font-weight:700; } .school-rating .stars{ color:#FFB800; }
+  .school-call{ text-decoration:none; background:var(--ink); color:#fff; padding:9px 16px; border-radius:100px; font-size:0.82rem; font-weight:700; font-family:'Space Grotesk',sans-serif; }
+  .rate-note{ font-size:0.85rem; color:#5c5c6b; background:rgba(255,138,61,0.18); padding:14px 16px; border-radius:14px; margin-top:14px; }
+
+  /* LOCKED FEATURE BLOCK */
+  .locked-panel{ background:var(--card); border-radius:22px; padding:36px 28px; text-align:center; box-shadow:0 10px 30px rgba(26,26,46,0.08); border:2px dashed var(--line); }
+  .locked-panel .lock-emoji{ font-size:2.4rem; margin-bottom:10px; }
+  .locked-panel h3{ font-size:1.2rem; margin-bottom:8px; }
+  .locked-panel p{ color:#5c5c6b; font-size:0.92rem; max-width:40ch; margin:0 auto 18px; }
+  .locked-panel a.unlock-btn{ display:inline-block; background:var(--pink); color:#fff; text-decoration:none; padding:12px 26px; border-radius:100px; font-weight:700; font-family:'Space Grotesk',sans-serif; font-size:0.92rem; }
+  .drive-page .locked-panel a.unlock-btn{ background:var(--orange); }
+
+  #listen-bar{ position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:40; background:var(--ink); color:#fff; border-radius:40px; padding:8px 12px 8px 8px; display:flex; align-items:center; gap:10px; box-shadow:0 14px 32px rgba(0,0,0,0.3); max-width:calc(100vw - 32px); }
+  #listen-toggle{ width:40px; height:40px; border-radius:50%; border:none; background:var(--lime); color:var(--ink); font-size:1rem; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  #listen-label{ font-size:0.76rem; color:rgba(255,255,255,0.6); white-space:nowrap; min-width:78px; }
+  .speed-group{ display:flex; gap:4px; }
+  .speed-btn{ border:1px solid rgba(255,255,255,0.25); background:transparent; color:rgba(255,255,255,0.75); font-size:0.7rem; padding:5px 9px; border-radius:20px; cursor:pointer; }
+  .speed-btn.active{ background:var(--pink); color:#fff; border-color:var(--pink); font-weight:600; }
+
+  footer.studio-footer{ text-align:center; padding:30px 24px 110px; color:#9a9aa5; font-size:0.78rem; }
+
+  @media (max-width:600px){ .doc-grid{grid-template-columns:1fr;} .school-card{grid-template-columns:1fr;} }
+  @media (max-width:480px){ #listen-label{display:none;} .tab-btn span.txt{display:none;} }
+</style>
+</head>
+<body>
+
+<div id="demo-banner">
+  <span class="pill">FREE DEMO</span>
+  <span>Full narration + milestone certificates are in the full version</span>
+  <a href="https://wjsaclhstudio.gumroad.com/l/amebfw" target="_blank" rel="noopener">Get full version →</a>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-emoji">🎁</div>
+    <h2>a milestone gift, demo version</h2>
+    <p>tap to open — no code needed for this free preview</p>
+    <button id="gate-btn">open it 🎉</button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="tab-bar">
+    <button class="tab-btn active" data-tab="vote">🗳️ <span class="txt">First Vote</span></button>
+    <button class="tab-btn" data-tab="drive">🚗 <span class="txt">Driving Licence</span></button>
+  </div>
+
+  <!-- VOTE PAGE -->
+  <div class="page vote-page active" id="page-vote">
+    <div class="hero vote-hero">
+      <div class="hero-sticker">🗳️</div>
+      <div class="wrap">
+        <div class="hero-badge">🎂 happy 18th, officially an adult</div>
+        <h1>you turned 18. that means you get a vote now.</h1>
+        <p class="lede">no cap, this is actually kind of a big deal. here's the whole vibe — what elections even are, what's going on in Karnataka rn, and how to get you registered.</p>
+      </div>
+    </div>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">01 · THE BASICS</div><h2>3 kinds of elections, no cap</h2><p>they stack up from your street to the whole country.</p></div>
+      <div class="tiers">
+        <div class="tier"><div class="emoji">🏘️</div><div><div class="meta">local · panchayat / BBMP-GBA</div><h3>local body elections</h3><p>you're picking who fixes your street, garbage pickup, water supply.</p></div></div>
+        <div class="tier"><div class="emoji">🏛️</div><div><div class="meta">state · vidhan sabha · every 5 yrs</div><h3>assembly elections</h3><p>you elect an MLA. majority runs the state, picks the CM. Karnataka's current Assembly runs till 2028.</p></div></div>
+        <div class="tier"><div class="emoji">🇮🇳</div><div><div class="meta">national · lok sabha · every 5 yrs</div><h3>general elections</h3><p>you elect an MP. majority across the country forms the central government + PM.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">02 · YOUR GLOW-UP</div><h2>becoming a registered voter</h2></div>
+      <div class="journey">
+        <div class="step"><div class="num">1</div><div><h3>check you qualify</h3><p>citizen, 18+, living at the address you register from.</p></div></div>
+        <div class="step"><div class="num">2</div><div><h3>fill Form 6 online</h3><p>voters.eci.gov.in — upload docs + photo.</p></div></div>
+        <div class="step"><div class="num">3</div><div><h3>BLO may verify</h3><p>keep originals handy.</p></div></div>
+        <div class="step"><div class="num">4</div><div><h3>get your EPIC</h3><p>your Voter ID — digital or physical.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">06 · MAKE IT OFFICIAL</div><h2>flex your milestone</h2></div>
+      <div class="locked-panel">
+        <div class="lock-emoji">🔒</div>
+        <h3>Certificate maker is a full-version feature</h3>
+        <p>generate + download your personalized "First Time Voter" milestone card in the unlocked version.</p>
+        <a class="unlock-btn" href="https://wjsaclhstudio.gumroad.com/l/amebfw" target="_blank" rel="noopener">Unlock full version</a>
+      </div>
+    </div></section>
+    <footer class="studio-footer">© 2026 WJSACLH Studio · All Rights Reserved · Zero Ads · Built with Purpose</footer>
+  </div>
+
+  <!-- DRIVE PAGE -->
+  <div class="page drive-page" id="page-drive">
+    <div class="hero drive-hero">
+      <div class="hero-sticker">🚗</div>
+      <div class="wrap">
+        <div class="hero-badge">🔑 unlocking: wheels era</div>
+        <h1>18 also means you can finally get your licence.</h1>
+        <p class="lede">the whole DL process, top-rated driving schools near you, and how to pass the test.</p>
+      </div>
+    </div>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">01 · THE BASICS</div><h2>the DL journey, no cap</h2></div>
+      <div class="tiers">
+        <div class="tier"><div class="emoji">📝</div><div><div class="meta">stage 1 · learner's licence</div><h3>pass a rules quiz</h3><p>computer test on signs + rules at the RTO. valid 6 months.</p></div></div>
+        <div class="tier"><div class="emoji">🚘</div><div><div class="meta">stage 2 · practice window</div><h3>practice with your "L" plate</h3><p>wait 30 days before the DL test, book within 180 days.</p></div></div>
+        <div class="tier"><div class="emoji">🏁</div><div><div class="meta">stage 3 · permanent DL</div><h3>pass the driving test</h3><p>practical test at the RTO track.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">04 · TOP-RATED NEAR YOU</div><h2>5 driving schools in Bengaluru</h2><p>ranked by Google rating + review volume. call for current rates.</p></div>
+      <div class="school-grid">
+        <div class="school-card"><div><div class="school-rank">#1 PICK</div><h3>Friends Driving School</h3><div class="school-meta">Nagasandra</div><div class="school-rating"><span class="stars">★★★★★</span> 5.0 (2,910)</div></div><a class="school-call" href="tel:+919066991888">Call</a></div>
+        <div class="school-card"><div><div class="school-rank">#2 PICK</div><h3>Sri Shivu Motor Driving School</h3><div class="school-meta">Yelachenahalli</div><div class="school-rating"><span class="stars">★★★★★</span> 5.0 (2,403)</div></div><a class="school-call" href="tel:+919886659349">Call</a></div>
+      </div>
+      <div class="rate-note">🔒 the full 5-school list + practice techniques + document checklist are in the unlocked version.</div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">06 · MAKE IT OFFICIAL</div><h2>flex your milestone</h2></div>
+      <div class="locked-panel">
+        <div class="lock-emoji">🔒</div>
+        <h3>Certificate maker is a full-version feature</h3>
+        <p>generate + download your "New Driver" milestone card in the unlocked version.</p>
+        <a class="unlock-btn" href="https://wjsaclhstudio.gumroad.com/l/amebfw" target="_blank" rel="noopener">Unlock full version</a>
+      </div>
+    </div></section>
+    <footer class="studio-footer">© 2026 WJSACLH Studio · All Rights Reserved · Zero Ads · Built with Purpose</footer>
+  </div>
+</div>
+
+<div id="listen-bar" style="display:none;">
+  <button id="listen-toggle" aria-label="Play">▶</button>
+  <span id="listen-label">Preview 0/0</span>
+  <div class="speed-group">
+    <button class="speed-btn" data-rate="0.75">0.75x</button>
+    <button class="speed-btn active" data-rate="1">1x</button>
+    <button class="speed-btn" data-rate="1.25">1.25x</button>
+  </div>
+</div>
+
+<script>
+  function burstConfetti(){
+    const canvas = document.getElementById('confetti-canvas');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#FF3D77','#7C3AED','#C6F135','#4CC9F0','#FFB800'];
+    let pieces = Array.from({length: 120}, () => ({
+      x: Math.random()*canvas.width, y: -20 - Math.random()*canvas.height*0.5,
+      w: 6+Math.random()*6, h: 8+Math.random()*8, color: colors[Math.floor(Math.random()*colors.length)],
+      speed: 2+Math.random()*3, drift:(Math.random()-0.5)*2, rot:Math.random()*360, rotSpeed:(Math.random()-0.5)*10
+    }));
+    let frame=0;
+    function tick(){
+      frame++; ctx.clearRect(0,0,canvas.width,canvas.height);
+      pieces.forEach(p=>{ p.y+=p.speed; p.x+=p.drift; p.rot+=p.rotSpeed;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); });
+      if(frame<120){ requestAnimationFrame(tick); } else { canvas.style.display='none'; }
+    }
+    tick();
+  }
+
+  document.getElementById('gate-btn').addEventListener('click', ()=>{
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    burstConfetti();
+    document.getElementById('listen-bar').style.display='flex';
+  });
+
+  let activeTab='vote';
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTab = btn.dataset.tab;
+      document.getElementById('page-vote').classList.toggle('active', activeTab==='vote');
+      document.getElementById('page-drive').classList.toggle('active', activeTab==='drive');
+      stopSpeech(); currentIndex=0; updateLabel();
+    });
+  });
+
+  // demo narration: short teaser only, then nudges to full version
+  const speechChunksByTab = {
+    vote: [
+      "You just turned 18. That means you get a vote now. This is the free demo narration.",
+      "Every election fits into one of three levels — local, state, or national. The full version walks through all of them plus the complete registration steps.",
+      "This is a preview. Unlock the full version for complete narration, document checklists, and the certificate maker."
+    ],
+    drive: [
+      "Turning 18 also means you can get your driving licence. This is the free demo narration.",
+      "The DL journey has three stages — learner's licence, practice, then the permanent licence test.",
+      "This is a preview. Unlock the full version for the complete process, all 5 driving schools, and test-clearing techniques."
+    ]
+  };
+  const synth = window.speechSynthesis;
+  let currentIndex=0, isPlaying=false, currentRate=1, utteranceQueue=[];
+  function currentChunks(){ return speechChunksByTab[activeTab]; }
+  function buildQueueFrom(startIndex){
+    const chunks = currentChunks();
+    utteranceQueue = chunks.slice(startIndex).map((text)=>{
+      const u = new SpeechSynthesisUtterance(text); u.rate = currentRate;
+      u.onend = () => {
+        currentIndex++; updateLabel();
+        if(isPlaying && currentIndex < chunks.length){ synth.speak(utteranceQueue[currentIndex-startIndex]); }
+        else if(currentIndex >= chunks.length){ isPlaying=false; currentIndex=0; updateToggleUI(); updateLabel(); }
+      };
+      return u;
+    });
+  }
+  function updateLabel(){ const c=currentChunks(); document.getElementById('listen-label').textContent = `Preview ${Math.min(currentIndex+1,c.length)}/${c.length}`; }
+  function updateToggleUI(){ document.getElementById('listen-toggle').textContent = isPlaying?'❚❚':'▶'; }
+  function playFromCurrent(){ buildQueueFrom(currentIndex); isPlaying=true; updateToggleUI(); synth.speak(utteranceQueue[0]); }
+  function stopSpeech(){ synth.cancel(); isPlaying=false; updateToggleUI(); }
+  document.getElementById('listen-toggle').addEventListener('click', ()=>{
+    if(!isPlaying){ if(synth.paused && synth.speaking){ synth.resume(); isPlaying=true; updateToggleUI(); } else { playFromCurrent(); } }
+    else { synth.pause(); isPlaying=false; updateToggleUI(); }
+  });
+  document.querySelectorAll('.speed-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); currentRate=parseFloat(btn.dataset.rate);
+      if(isPlaying || (synth.speaking && !synth.paused)){ synth.cancel(); playFromCurrent(); }
+    });
+  });
+  updateLabel();
+</script>
+</body>
+</html>

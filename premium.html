@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>EighteenMiles — Full Version</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#FFF3E9; --ink:#1A1A2E; --pink:#FF3D77; --purple:#7C3AED; --lime:#C6F135; --sky:#4CC9F0; --orange:#FF8A3D; --card:#FFFFFF; --line:rgba(26,26,46,0.10); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5; }
+  h1,h2,h3{ font-family:'Space Grotesk',sans-serif; font-weight:700; margin:0; color:var(--ink); }
+  a{ color:var(--purple); }
+  #confetti-canvas{ position:fixed; inset:0; z-index:60; pointer-events:none; display:none; }
+
+  /* LICENCE GATE */
+  #gate{ position:fixed; inset:0; z-index:50; background: linear-gradient(160deg, var(--purple) 0%, var(--pink) 100%); display:flex; align-items:center; justify-content:center; padding:24px; }
+  .gate-card{ background:var(--card); border-radius:24px; max-width:400px; width:100%; padding:40px 30px; text-align:center; box-shadow:0 30px 70px rgba(0,0,0,0.35); }
+  .gate-emoji{ font-size:3rem; margin-bottom:10px; }
+  .gate-card h2{ font-size:1.4rem; margin-bottom:6px; }
+  .gate-card p{ color:#6b6b78; font-size:0.9rem; margin:0 0 20px; }
+  #license-input{ width:100%; font-family:'Space Grotesk',sans-serif; font-size:1rem; letter-spacing:0.03em; text-align:center; padding:13px 10px; border:2px solid var(--line); border-radius:14px; background:var(--bg); color:var(--ink); outline:none; text-transform:uppercase; }
+  #license-input:focus{ border-color:var(--purple); }
+  #gate-btn{ margin-top:14px; width:100%; padding:14px; background:var(--pink); color:#fff; border:none; border-radius:14px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.98rem; cursor:pointer; }
+  #gate-btn:hover{ background:var(--purple); }
+  #gate-btn:disabled{ opacity:0.6; cursor:wait; }
+  #gate-error{ color:#E0432E; font-size:0.84rem; min-height:18px; margin-top:10px; font-weight:600; }
+  #gate-buy{ display:block; margin-top:18px; font-size:0.84rem; color:#6b6b78; }
+  #gate-buy a{ color:var(--purple); font-weight:700; }
+
+  #app{ display:none; }
+  .wrap{ max-width:760px; margin:0 auto; padding:0 24px; }
+  #tab-bar{ position:sticky; top:0; z-index:30; background:rgba(255,243,233,0.92); backdrop-filter:blur(10px); padding:14px 24px; display:flex; justify-content:center; gap:10px; border-bottom:1px solid var(--line); }
+  .tab-btn{ border:2px solid var(--ink); background:transparent; color:var(--ink); padding:9px 18px; border-radius:100px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .tab-btn.active{ background:var(--ink); color:#fff; }
+  .page{ display:none; } .page.active{ display:block; }
+
+  .hero{ color:#fff; padding:56px 0 90px; position:relative; overflow:hidden; border-radius:0 0 40px 40px; }
+  .hero.vote-hero{ background:linear-gradient(150deg, var(--purple) 0%, #B23BFF 45%, var(--pink) 100%); }
+  .hero.drive-hero{ background:linear-gradient(150deg, var(--orange) 0%, #FF3D77 55%, var(--purple) 100%); }
+  .hero-badge{ display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.18); padding:6px 14px; border-radius:100px; font-size:0.78rem; font-weight:600; margin-bottom:20px; }
+  .hero h1{ font-size:clamp(2.1rem,6.6vw,3rem); line-height:1.08; max-width:13ch; }
+  .hero p.lede{ margin-top:18px; max-width:46ch; color:rgba(255,255,255,0.92); font-size:1.05rem; font-weight:500; }
+  .hero-sticker{ position:absolute; right:20px; top:26px; font-size:3.2rem; transform:rotate(12deg); opacity:0.9; }
+
+  section{ padding:50px 0; }
+  .section-head{ margin-bottom:28px; }
+  .section-head .kicker{ display:inline-block; font-size:0.78rem; color:var(--purple); font-weight:700; background:rgba(124,58,237,0.1); padding:4px 12px; border-radius:100px; margin-bottom:12px; }
+  .section-head h2{ font-size:1.6rem; }
+  .section-head p{ color:#5c5c6b; margin-top:10px; max-width:56ch; }
+
+  .tiers{ display:flex; flex-direction:column; gap:14px; }
+  .tier{ background:var(--card); border-radius:20px; padding:22px; display:grid; grid-template-columns:56px 1fr; gap:16px; box-shadow:0 6px 20px rgba(26,26,46,0.06); border:2px solid transparent; }
+  .tier:nth-child(1){ border-color:rgba(76,201,240,0.35);} .tier:nth-child(2){ border-color:rgba(255,61,119,0.35);} .tier:nth-child(3){ border-color:rgba(124,58,237,0.35);}
+  .tier .emoji{ font-size:2rem; } .tier .meta{ font-size:0.78rem; color:var(--purple); font-weight:700; margin-bottom:4px; text-transform:uppercase; }
+  .tier h3{ font-size:1.12rem; margin-bottom:6px; } .tier p{ margin:0; color:#5c5c6b; font-size:0.93rem; }
+
+  .journey{ display:flex; flex-direction:column; gap:12px; }
+  .step{ background:var(--card); border-radius:18px; padding:18px 20px; display:grid; grid-template-columns:40px 1fr; gap:14px; box-shadow:0 6px 18px rgba(26,26,46,0.05); }
+  .step .num{ width:36px; height:36px; background:var(--lime); color:var(--ink); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; }
+  .drive-page .step .num{ background:var(--orange); }
+  .step h3{ font-size:1.03rem; margin-bottom:4px; } .step p{ margin:0; color:#5c5c6b; font-size:0.92rem; }
+  .step .tag{ display:inline-block; margin-top:8px; font-size:0.76rem; color:#fff; font-weight:600; background:var(--purple); padding:4px 10px; border-radius:100px; }
+  .drive-page .step .tag{ background:var(--orange); }
+
+  .doc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .doc-card{ background:var(--card); border-radius:18px; padding:20px; box-shadow:0 6px 18px rgba(26,26,46,0.05); }
+  .doc-card h3{ font-size:1rem; margin-bottom:12px; } .doc-card ul{ margin:0; padding-left:18px; color:#5c5c6b; font-size:0.9rem; } .doc-card li{ margin-bottom:7px; }
+  .doc-note{ grid-column:1/-1; font-size:0.85rem; color:#5c5c6b; background:rgba(198,241,53,0.25); padding:14px 16px; border-radius:14px; }
+  .drive-page .doc-note{ background:rgba(255,138,61,0.18); }
+
+  .epic-explain{ display:grid; grid-template-columns:1fr 1.1fr; gap:24px; align-items:center; }
+  .epic-card{ background:linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%); border-radius:20px; padding:22px; color:#fff; aspect-ratio:1.58/1; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 18px 40px rgba(255,61,119,0.28); }
+  .drive-page .epic-card{ background:linear-gradient(135deg, var(--orange) 0%, var(--pink) 100%); }
+  .epic-card .top-row{ display:flex; justify-content:space-between; font-size:0.7rem; opacity:0.9; font-weight:600; }
+  .epic-card .photo-box{ width:44px; height:52px; background:rgba(255,255,255,0.25); border-radius:8px; margin-top:10px; }
+  .epic-card .epic-no{ font-family:'Space Grotesk',sans-serif; font-size:1.1rem; letter-spacing:0.06em; }
+  .epic-list{ list-style:none; margin:0; padding:0; } .epic-list li{ padding:10px 0; border-bottom:1px dashed var(--line); font-size:0.92rem; color:#3b3b3b; } .epic-list li:last-child{border-bottom:none;} .epic-list b{ color:var(--ink); }
+
+  .link-grid{ display:grid; gap:12px; }
+  .link-row{ display:flex; justify-content:space-between; align-items:center; background:var(--card); border-radius:16px; padding:15px 18px; text-decoration:none; color:inherit; box-shadow:0 6px 18px rgba(26,26,46,0.05); border:2px solid transparent; }
+  .link-row:hover{ border-color:var(--pink); }
+  .link-row .lbl b{ display:block; font-size:0.95rem; } .link-row .lbl span{ font-size:0.8rem; color:#6b6b78; } .link-row .go{ color:var(--pink); font-size:1.2rem; }
+
+  .school-grid{ display:flex; flex-direction:column; gap:12px; }
+  .school-card{ background:var(--card); border-radius:18px; padding:18px 20px; box-shadow:0 6px 18px rgba(26,26,46,0.05); display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; }
+  .school-rank{ font-family:'Space Grotesk',sans-serif; font-weight:700; color:var(--orange); font-size:0.8rem; }
+  .school-card h3{ font-size:1.02rem; margin:2px 0 4px; } .school-meta{ font-size:0.84rem; color:#5c5c6b; }
+  .school-rating{ font-size:0.82rem; font-weight:700; } .school-rating .stars{ color:#FFB800; }
+  .school-call{ text-decoration:none; background:var(--ink); color:#fff; padding:9px 16px; border-radius:100px; font-size:0.82rem; font-weight:700; font-family:'Space Grotesk',sans-serif; }
+  .school-call:hover{ background:var(--orange); }
+  .rate-note{ font-size:0.85rem; color:#5c5c6b; background:rgba(255,138,61,0.18); padding:14px 16px; border-radius:14px; margin-top:14px; }
+
+  .cert-panel{ background:var(--card); border-radius:22px; padding:28px; box-shadow:0 10px 30px rgba(26,26,46,0.08); }
+  .cert-form{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
+  .cert-form input{ flex:1; min-width:180px; padding:13px 16px; border:2px solid var(--line); border-radius:14px; font-family:'Inter',sans-serif; font-size:0.95rem; background:var(--bg); }
+  .cert-form input:focus{ outline:none; border-color:var(--purple); }
+  .cert-form button{ padding:13px 22px; background:var(--pink); color:#fff; border:none; border-radius:14px; font-weight:700; font-size:0.9rem; cursor:pointer; font-family:'Space Grotesk',sans-serif; }
+  .drive-page .cert-form button{ background:var(--orange); } .cert-form button:hover{ background:var(--purple); }
+  canvas.cert-canvas{ width:100%; max-width:560px; display:block; margin:0 auto; border-radius:16px; box-shadow:0 16px 36px rgba(0,0,0,0.16); }
+  .cert-actions{ display:flex; justify-content:center; gap:12px; margin-top:18px; }
+  .cert-actions button{ padding:11px 20px; border-radius:100px; border:2px solid var(--ink); background:transparent; color:var(--ink); font-weight:700; font-family:'Space Grotesk',sans-serif; cursor:pointer; font-size:0.88rem; }
+  .cert-actions button:hover{ background:var(--ink); color:#fff; }
+
+  footer.studio-footer{ text-align:center; padding:30px 24px 110px; color:#9a9aa5; font-size:0.78rem; }
+
+  #listen-bar{ position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:40; background:var(--ink); color:#fff; border-radius:40px; padding:8px 12px 8px 8px; display:flex; align-items:center; gap:10px; box-shadow:0 14px 32px rgba(0,0,0,0.3); max-width:calc(100vw - 32px); }
+  #listen-toggle{ width:40px; height:40px; border-radius:50%; border:none; background:var(--lime); color:var(--ink); font-size:1rem; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  #listen-toggle:hover{ background:var(--sky); }
+  #listen-label{ font-size:0.76rem; color:rgba(255,255,255,0.6); white-space:nowrap; min-width:78px; }
+  .speed-group{ display:flex; gap:4px; }
+  .speed-btn{ border:1px solid rgba(255,255,255,0.25); background:transparent; color:rgba(255,255,255,0.75); font-size:0.7rem; padding:5px 9px; border-radius:20px; cursor:pointer; }
+  .speed-btn.active{ background:var(--pink); color:#fff; border-color:var(--pink); font-weight:600; }
+
+  #offline-pill{ position:fixed; top:10px; right:10px; z-index:41; background:var(--ink); color:#fff; font-size:0.7rem; padding:5px 11px; border-radius:100px; display:none; }
+
+  @media (max-width:600px){ .doc-grid{grid-template-columns:1fr;} .epic-explain{grid-template-columns:1fr;} .school-card{grid-template-columns:1fr;} }
+  @media (max-width:480px){ #listen-label{display:none;} .tab-btn span.txt{display:none;} }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+<div id="offline-pill">📡 offline mode</div>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-emoji">🔑</div>
+    <h2>enter your licence key</h2>
+    <p>the key you got in your Gumroad receipt email</p>
+    <input type="text" id="license-input" placeholder="XXXX-XXXX-XXXX-XXXX" autofocus>
+    <button id="gate-btn">unlock ✨</button>
+    <div id="gate-error"></div>
+    <div id="gate-buy">don't have one yet? <a href="https://wjsaclhstudio.gumroad.com/l/amebfw" target="_blank" rel="noopener">get it here</a></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="tab-bar">
+    <button class="tab-btn active" data-tab="vote">🗳️ <span class="txt">First Vote</span></button>
+    <button class="tab-btn" data-tab="drive">🚗 <span class="txt">Driving Licence</span></button>
+  </div>
+
+  <!-- VOTE PAGE -->
+  <div class="page vote-page active" id="page-vote">
+    <div class="hero vote-hero">
+      <div class="hero-sticker">🗳️</div>
+      <div class="wrap">
+        <div class="hero-badge">🎂 happy 18th, officially an adult</div>
+        <h1>you turned 18. that means you get a vote now.</h1>
+        <p class="lede">no cap, this is actually kind of a big deal. here's the whole vibe — what elections even are, what's going on in Karnataka rn, and how to get you registered. zero politics, just the facts.</p>
+      </div>
+    </div>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">01 · THE BASICS</div><h2>3 kinds of elections, no cap</h2><p>every election you'll ever hear about fits into one of these three.</p></div>
+      <div class="tiers">
+        <div class="tier"><div class="emoji">🏘️</div><div><div class="meta">local · panchayat / BBMP-GBA</div><h3>local body elections</h3><p>you're picking who fixes your street, garbage pickup, water supply. closest to your actual life.</p></div></div>
+        <div class="tier"><div class="emoji">🏛️</div><div><div class="meta">state · vidhan sabha · every 5 yrs</div><h3>assembly elections</h3><p>you elect an MLA. majority runs the state, picks the Chief Minister. Karnataka's current Assembly runs till 2028.</p></div></div>
+        <div class="tier"><div class="emoji">🇮🇳</div><div><div class="meta">national · lok sabha · every 5 yrs</div><h3>general elections</h3><p>you elect an MP. majority across the country forms the central government, picks the PM.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">02 · YOUR GLOW-UP</div><h2>becoming a registered voter, step by step</h2></div>
+      <div class="journey">
+        <div class="step"><div class="num">1</div><div><h3>check you qualify</h3><p>indian citizen, 18+ on the qualifying date, living at the address you register from.</p></div></div>
+        <div class="step"><div class="num">2</div><div><h3>fill Form 6 online</h3><p>make an account, fill the new-voter form, upload docs + a photo.</p><span class="tag">voters.eci.gov.in</span></div></div>
+        <div class="step"><div class="num">3</div><div><h3>BLO might swing by</h3><p>keep originals handy.</p></div></div>
+        <div class="step"><div class="num">4</div><div><h3>get your EPIC</h3><p>download the digital e-EPIC instantly or wait for the physical card.</p></div></div>
+        <div class="step"><div class="num">5</div><div><h3>double check the roll</h3><p>search your name before election day.</p></div></div>
+        <div class="step"><div class="num">6</div><div><h3>go vote</h3><p>bring your Voter ID. it's a paid day off if you're working.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">03 · THE RECEIPTS</div><h2>docs you'll actually need</h2></div>
+      <div class="doc-grid">
+        <div class="doc-card"><h3>🎂 proof of age</h3><ul><li>birth certificate</li><li>10th marksheet</li><li>passport</li><li>aadhaar</li></ul></div>
+        <div class="doc-card"><h3>🏠 proof of address</h3><ul><li>aadhaar</li><li>passport</li><li>ration card</li><li>utility bill or bank passbook</li><li>rent agreement, if renting</li></ul></div>
+        <div class="doc-note">plus one passport photo. family already on an old roll? the portal can auto-link you instead.</div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">04 · YOUR ERA BEGINS</div><h2>meet your voter ID</h2></div>
+      <div class="epic-explain">
+        <div class="epic-card"><div class="top-row"><span>ELECTION COMMISSION OF INDIA</span><span>EPIC</span></div><div class="photo-box"></div><div><div class="epic-no">XXX 1234567</div></div></div>
+        <ul class="epic-list"><li><b>proves</b> you're registered at a specific address + constituency</li><li><b>doubles as ID</b> for most KYC stuff</li><li><b>e-EPIC</b> downloadable PDF, no waiting</li><li><b>never expires</b> — update via Form 8 if you move</li></ul>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">05 · THE LEGIT LINKS</div><h2>only click these, fr</h2></div>
+      <div class="link-grid">
+        <a class="link-row" href="https://voters.eci.gov.in" target="_blank" rel="noopener"><div class="lbl"><b>voters.eci.gov.in</b><span>register, fix details, download e-EPIC</span></div><div class="go">↗</div></a>
+        <a class="link-row" href="https://voters.eci.gov.in/form8" target="_blank" rel="noopener"><div class="lbl"><b>Form 8</b><span>moved house or lost your card?</span></div><div class="go">↗</div></a>
+        <a class="link-row" href="https://ceo.karnataka.gov.in" target="_blank" rel="noopener"><div class="lbl"><b>ceo.karnataka.gov.in</b><span>Karnataka's official election updates</span></div><div class="go">↗</div></a>
+        <a class="link-row" href="tel:1950"><div class="lbl"><b>1950</b><span>voter helpline, toll-free</span></div><div class="go">↗</div></a>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">06 · MAKE IT OFFICIAL</div><h2>flex your milestone</h2><p>type the name, hit generate, download it, post it wherever.</p></div>
+      <div class="cert-panel">
+        <div class="cert-form"><input type="text" id="cert-name-vote" placeholder="full name" maxlength="30"><button id="cert-generate-vote">generate ✨</button></div>
+        <canvas class="cert-canvas" id="cert-canvas-vote" width="1000" height="620"></canvas>
+        <div class="cert-actions"><button id="cert-download-vote">download & flex</button></div>
+      </div>
+    </div></section>
+    <footer class="studio-footer">© 2026 WJSACLH Studio · All Rights Reserved · Zero Ads · Built with Purpose</footer>
+  </div>
+
+  <!-- DRIVE PAGE -->
+  <div class="page drive-page" id="page-drive">
+    <div class="hero drive-hero">
+      <div class="hero-sticker">🚗</div>
+      <div class="wrap">
+        <div class="hero-badge">🔑 unlocking: wheels era</div>
+        <h1>18 also means you can finally get your licence.</h1>
+        <p class="lede">the whole DL process, top-rated driving schools near you, and how to actually pass the test without panicking.</p>
+      </div>
+    </div>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">01 · THE BASICS</div><h2>the DL journey, no cap</h2><p>it's a 3-stage thing.</p></div>
+      <div class="tiers">
+        <div class="tier" style="border-color:rgba(255,138,61,0.4);"><div class="emoji">📝</div><div><div class="meta">stage 1 · learner's licence (LL)</div><h3>pass a rules quiz, get your LL</h3><p>computer test on road signs + rules at the RTO. valid 6 months.</p></div></div>
+        <div class="tier" style="border-color:rgba(255,61,119,0.4);"><div class="emoji">🚘</div><div><div class="meta">stage 2 · practice window</div><h3>practice with your "L" plate</h3><p>wait at least 30 days before the DL test, book within 180 days.</p></div></div>
+        <div class="tier" style="border-color:rgba(124,58,237,0.4);"><div class="emoji">🏁</div><div><div class="meta">stage 3 · permanent DL</div><h3>pass the driving test</h3><p>practical test at the RTO track. pass it, get your card.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">02 · STEP BY STEP</div><h2>how to actually get it done</h2></div>
+      <div class="journey">
+        <div class="step"><div class="num">1</div><div><h3>check eligibility</h3><p>18+ cars/geared two-wheelers, 16+ with guardian consent for gearless <50cc, 20+ for commercial.</p></div></div>
+        <div class="step"><div class="num">2</div><div><h3>apply for your LL online</h3><p>Form 2 on Sarathi, upload docs + photo, pay ~₹200–350.</p><span class="tag">sarathi.parivahan.gov.in</span></div></div>
+        <div class="step"><div class="num">3</div><div><h3>take the LL test</h3><p>computer quiz on signs/rules, score 60%+ to pass.</p></div></div>
+        <div class="step"><div class="num">4</div><div><h3>get your LL, start practicing</h3><p>display the "L" sign, practice with someone licensed.</p></div></div>
+        <div class="step"><div class="num">5</div><div><h3>book your DL test slot</h3><p>after 30 days (before 180), Form 4, pay ~₹300 + ~₹200 fees.</p></div></div>
+        <div class="step"><div class="num">6</div><div><h3>take the driving test</h3><p>H-pattern reverse, figure-8, gradient hold, sometimes parallel parking.</p></div></div>
+        <div class="step"><div class="num">7</div><div><h3>get your DL</h3><p>permanent licence, valid 20 years for non-commercial, couriered to you.</p></div></div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">03 · THE RECEIPTS</div><h2>docs you'll need</h2></div>
+      <div class="doc-grid">
+        <div class="doc-card"><h3>🎂 proof of age</h3><ul><li>birth certificate</li><li>10th marksheet</li><li>passport</li><li>aadhaar</li></ul></div>
+        <div class="doc-card"><h3>🏠 proof of address</h3><ul><li>aadhaar</li><li>passport</li><li>utility bill or bank passbook</li><li>rent agreement, if renting</li></ul></div>
+        <div class="doc-note">plus: 2–3 passport photos, Form 1 (self-declaration), Form 1A (medical cert) if 40+ or commercial licence.</div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">04 · TOP-RATED NEAR YOU</div><h2>5 driving schools in Bengaluru worth calling</h2><p>ranked by rating + review volume. call each for current package rates.</p></div>
+      <div class="school-grid">
+        <div class="school-card"><div><div class="school-rank">#1 PICK</div><h3>Friends Driving School</h3><div class="school-meta">Nagasandra · car + two-wheeler</div><div class="school-rating"><span class="stars">★★★★★</span> 5.0 (2,910 reviews)</div></div><a class="school-call" href="tel:+919066991888">Call</a></div>
+        <div class="school-card"><div><div class="school-rank">#2 PICK</div><h3>Sri Shivu Motor Driving School</h3><div class="school-meta">Yelachenahalli · since 1999</div><div class="school-rating"><span class="stars">★★★★★</span> 5.0 (2,403 reviews)</div></div><a class="school-call" href="tel:+919886659349">Call</a></div>
+        <div class="school-card"><div><div class="school-rank">#3 PICK</div><h3>Infinity Driving School</h3><div class="school-meta">JP Nagar 7th Phase</div><div class="school-rating"><span class="stars">★★★★★</span> 4.9 (1,881 reviews)</div></div><a class="school-call" href="tel:+919886861418">Call</a></div>
+        <div class="school-card"><div><div class="school-rank">#4 PICK</div><h3>Lakshmi Motor Driving School</h3><div class="school-meta">Byatarayanapura</div><div class="school-rating"><span class="stars">★★★★★</span> 4.9 (1,010 reviews)</div></div><a class="school-call" href="tel:+919845453961">Call</a></div>
+        <div class="school-card"><div><div class="school-rank">#5 PICK</div><h3>Yashas Driving School</h3><div class="school-meta">BTM 2nd Stage</div><div class="school-rating"><span class="stars">★★★★★</span> 4.9 (650 reviews)</div></div><a class="school-call" href="tel:+919900247274">Call</a></div>
+      </div>
+      <div class="rate-note">💸 full LL+DL packages in Bengaluru typically run ₹4,000–₹9,000 depending on vehicle type + class count, plus separate RTO fees. a few reviewers mention surprise add-ons — confirm the total cost on call before paying anything upfront.</div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">05 · PASS IT FIRST TRY</div><h2>how to actually clear the test</h2></div>
+      <div class="doc-grid">
+        <div class="doc-card"><h3>📋 carry on test day</h3><ul><li>original LL + photocopy</li><li>original ID/address proof</li><li>2 passport photos</li><li>application/fee receipt</li><li>your own vehicle if required</li></ul></div>
+        <div class="doc-card"><h3>🎯 what the test checks</h3><ul><li>H-pattern reverse</li><li>figure-8 / slalom</li><li>gradient hold, no rollback</li><li>parallel parking (some RTOs)</li><li>signal + indicator response</li></ul></div>
+        <div class="doc-note"><b>practice techniques that work:</b> dry-run the figure-8 and H-reverse in an empty lot before test day. Practice clutch-brake balance on a slope. Say your mirror-checks out loud (SM-OM-SM). Run the sign-recognition mock tests on Parivahan's site the night before. Walk the actual test track beforehand if your RTO allows it.</div>
+      </div>
+    </div></section>
+    <section><div class="wrap">
+      <div class="section-head"><div class="kicker">06 · MAKE IT OFFICIAL</div><h2>flex your milestone</h2></div>
+      <div class="cert-panel">
+        <div class="cert-form"><input type="text" id="cert-name-drive" placeholder="full name" maxlength="30"><button id="cert-generate-drive">generate ✨</button></div>
+        <canvas class="cert-canvas" id="cert-canvas-drive" width="1000" height="620"></canvas>
+        <div class="cert-actions"><button id="cert-download-drive">download & flex</button></div>
+      </div>
+    </div></section>
+    <footer class="studio-footer">© 2026 WJSACLH Studio · All Rights Reserved · Zero Ads · Built with Purpose</footer>
+  </div>
+</div>
+
+<div id="listen-bar" style="display:none;">
+  <button id="listen-toggle" aria-label="Play">▶</button>
+  <span id="listen-label">Section 0/0</span>
+  <div class="speed-group">
+    <button class="speed-btn" data-rate="0.75">0.75x</button>
+    <button class="speed-btn active" data-rate="1">1x</button>
+    <button class="speed-btn" data-rate="1.25">1.25x</button>
+    <button class="speed-btn" data-rate="1.5">1.5x</button>
+  </div>
+</div>
+
+<script>
+  // ============ CONFIG ============
+  const GUMROAD_PRODUCT_ID = "KeKYN3_6KLIaABnS5eRVUA==";
+  const LICENSE_STORAGE_KEY = "em_license_v1";
+  const RECHECK_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+
+  // ============ SERVICE WORKER (offline support) ============
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{ /* non-fatal */ });
+    });
+  }
+  function updateOfflinePill(){
+    document.getElementById('offline-pill').style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online', updateOfflinePill);
+  window.addEventListener('offline', updateOfflinePill);
+
+  // ============ CONFETTI ============
+  function burstConfetti(){
+    const canvas = document.getElementById('confetti-canvas');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const colors = ['#FF3D77','#7C3AED','#C6F135','#4CC9F0','#FFB800'];
+    let pieces = Array.from({length: 140}, () => ({
+      x: Math.random()*canvas.width, y: -20 - Math.random()*canvas.height*0.5,
+      w: 6+Math.random()*6, h: 8+Math.random()*8, color: colors[Math.floor(Math.random()*colors.length)],
+      speed: 2+Math.random()*3, drift:(Math.random()-0.5)*2, rot:Math.random()*360, rotSpeed:(Math.random()-0.5)*10
+    }));
+    let frame=0;
+    function tick(){
+      frame++; ctx.clearRect(0,0,canvas.width,canvas.height);
+      pieces.forEach(p=>{ p.y+=p.speed; p.x+=p.drift; p.rot+=p.rotSpeed;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); });
+      if(frame<130){ requestAnimationFrame(tick); } else { canvas.style.display='none'; }
+    }
+    tick();
+  }
+
+  // ============ LICENCE LOGIC ============
+  function getStoredLicense(){
+    try{
+      const raw = localStorage.getItem(LICENSE_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function storeLicense(key){
+    try{
+      localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify({ key, lastChecked: Date.now() }));
+    }catch(e){ /* localStorage unavailable — unlock still works for this session */ }
+  }
+  function clearLicense(){
+    try{ localStorage.removeItem(LICENSE_STORAGE_KEY); }catch(e){}
+  }
+
+  async function verifyWithGumroad(key, incrementUses){
+    const body = new URLSearchParams();
+    body.set('product_id', GUMROAD_PRODUCT_ID);
+    body.set('license_key', key);
+    if(incrementUses) body.set('increment_uses_count', 'true');
+    const res = await fetch('https://api.gumroad.com/v2/licenses/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    return res.json();
+  }
+
+  function unlockApp(){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    burstConfetti();
+    drawCert('vote'); drawCert('drive');
+    document.getElementById('listen-bar').style.display = 'flex';
+    updateOfflinePill();
+  }
+
+  function showGateError(msg){
+    document.getElementById('gate-error').textContent = msg;
+  }
+
+  async function attemptUnlock(key, {increment}){
+    try{
+      const check = await verifyWithGumroad(key, false);
+      if(!check.success){
+        return { ok:false, error: "that key doesn't look right — double check it" };
+      }
+      const p = check.purchase || {};
+      if(p.refunded || p.chargebacked || p.disputed){
+        return { ok:false, error: "this key is no longer valid (refunded/disputed)" };
+      }
+      if(typeof p.uses === 'number' && p.uses >= 3){
+        return { ok:false, error: "this key has already been used on 3 devices" };
+      }
+      if(increment){
+        const inc = await verifyWithGumroad(key, true);
+        if(!inc.success){
+          return { ok:false, error: "couldn't confirm your key — try again" };
+        }
+      }
+      return { ok:true };
+    }catch(e){
+      return { ok:false, error: "couldn't reach the licence server — check your connection and try again", networkError:true };
+    }
+  }
+
+  async function handleUnlockClick(){
+    const input = document.getElementById('license-input');
+    const btn = document.getElementById('gate-btn');
+    const key = input.value.trim();
+    if(!key){ showGateError("enter your licence key first"); return; }
+
+    // if same key already stored and offline, trust cache
+    const stored = getStoredLicense();
+    if(!navigator.onLine){
+      if(stored && stored.key === key){
+        unlockApp(); return;
+      }
+      showGateError("you're offline — connect once to verify a new key");
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'checking…'; showGateError('');
+    const result = await attemptUnlock(key, { increment:true });
+    btn.disabled = false; btn.textContent = 'unlock ✨';
+
+    if(result.ok){
+      storeLicense(key);
+      unlockApp();
+    } else {
+      showGateError(result.error);
+    }
+  }
+
+  async function tryAutoUnlockFromCache(){
+    const stored = getStoredLicense();
+    if(!stored) return;
+
+    if(!navigator.onLine){
+      unlockApp(); // trust cache fully when offline
+      return;
+    }
+
+    const dueForRecheck = (Date.now() - (stored.lastChecked||0)) > RECHECK_INTERVAL_MS;
+    if(!dueForRecheck){
+      unlockApp();
+      return;
+    }
+
+    // 14-day recheck: verify status only, no increment
+    const result = await attemptUnlock(stored.key, { increment:false });
+    if(result.ok){
+      storeLicense(stored.key);
+      unlockApp();
+    } else if(result.networkError){
+      // couldn't reach server but had a network — fail open to cached access rather than lock out
+      unlockApp();
+    } else {
+      clearLicense();
+      showGateError("your licence couldn't be revalidated — enter your key again");
+    }
+  }
+
+  document.getElementById('gate-btn').addEventListener('click', handleUnlockClick);
+  document.getElementById('license-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleUnlockClick(); });
+  tryAutoUnlockFromCache();
+
+  // ============ TABS ============
+  let activeTab = 'vote';
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTab = btn.dataset.tab;
+      document.getElementById('page-vote').classList.toggle('active', activeTab==='vote');
+      document.getElementById('page-drive').classList.toggle('active', activeTab==='drive');
+      stopSpeech(); currentIndex = 0; updateLabel();
+    });
+  });
+
+  // ============ CERTIFICATE MAKER ============
+  const certConfig = {
+    vote: { canvasId:'cert-canvas-vote', nameId:'cert-name-vote', c1:'#7C3AED', c2:'#FF3D77', badge:['FIRST','TIME','VOTER'], eyebrow:'🎉 MILESTONE UNLOCKED', title:'registered to vote', lines:['officially has a say in how their street,','state, and country get run.','one vote. same as everyone else\u2019s.'], footer:'Election Commission of India · voters.eci.gov.in' },
+    drive: { canvasId:'cert-canvas-drive', nameId:'cert-name-drive', c1:'#FF8A3D', c2:'#7C3AED', badge:['NEW','DRIVER','ERA'], eyebrow:'🚗 MILESTONE UNLOCKED', title:'got the driving licence', lines:['officially cleared to hit the road —','LL, practice, and test, all done.','wheels era, unlocked.'], footer:'Parivahan Sarathi · sarathi.parivahan.gov.in' }
+  };
+
+  function drawCert(which){
+    const cfg = certConfig[which];
+    const canvas = document.getElementById(cfg.canvasId);
+    const ctx = canvas.getContext('2d');
+    const name = document.getElementById(cfg.nameId).value.trim() || 'your name here';
+    const W = canvas.width, H = canvas.height;
+    const grad = ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0,cfg.c1); grad.addColorStop(1,cfg.c2);
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = 'rgba(255,255,255,0.96)';
+    ctx.beginPath(); ctx.roundRect(30,30,W-60,H-60,28); ctx.fill();
+    ctx.save(); ctx.translate(W-140, 120); ctx.rotate(-0.15);
+    ctx.fillStyle = '#C6F135'; ctx.beginPath(); ctx.arc(0,0,64,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#1A1A2E'; ctx.font = '700 15px Space Grotesk, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(cfg.badge[0], 0, -8); ctx.fillText(cfg.badge[1], 0, 10); ctx.fillText(cfg.badge[2], 0, 28);
+    ctx.restore();
+    ctx.fillStyle = cfg.c2; ctx.font = '700 20px Space Grotesk, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(cfg.eyebrow, 70, 120);
+    ctx.fillStyle = '#1A1A2E'; ctx.font = '700 44px Space Grotesk, sans-serif';
+    ctx.fillText(cfg.title, 70, 195);
+    ctx.fillStyle = cfg.c1; ctx.font = '700 56px Space Grotesk, sans-serif';
+    ctx.fillText(name, 70, 300);
+    ctx.strokeStyle = '#C6F135'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(70, 320);
+    ctx.lineTo(70 + Math.min(ctx.measureText(name).width, W-140), 320); ctx.stroke();
+    ctx.fillStyle = '#5c5c6b'; ctx.font = '500 20px Inter, sans-serif';
+    cfg.lines.forEach((line, i)=> ctx.fillText(line, 70, 370 + i*32));
+    ctx.fillStyle = '#9a9aa5'; ctx.font = '400 15px Inter, sans-serif';
+    ctx.fillText(cfg.footer, 70, H-60);
+  }
+  document.getElementById('cert-generate-vote').addEventListener('click', ()=>drawCert('vote'));
+  document.getElementById('cert-generate-drive').addEventListener('click', ()=>drawCert('drive'));
+  document.getElementById('cert-name-vote').addEventListener('keydown', (e)=>{ if(e.key==='Enter') drawCert('vote'); });
+  document.getElementById('cert-name-drive').addEventListener('keydown', (e)=>{ if(e.key==='Enter') drawCert('drive'); });
+  function downloadCanvas(canvasId, filename){
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = document.getElementById(canvasId).toDataURL('image/png');
+    link.click();
+  }
+  document.getElementById('cert-download-vote').addEventListener('click', ()=>downloadCanvas('cert-canvas-vote','first-time-voter.png'));
+  document.getElementById('cert-download-drive').addEventListener('click', ()=>downloadCanvas('cert-canvas-drive','new-driver.png'));
+
+  // ============ READ ALOUD ============
+  const speechChunksByTab = {
+    vote: [
+      "You just turned 18. That means you get a vote now. This guide covers what elections actually are, what's happening in Karnataka right now, and exactly how to get you registered.",
+      "Every election fits into one of three levels. Local body elections choose your ward councillor or panchayat member. Assembly elections, every five years, elect an M L A — majority runs the state. General elections, also every five years, elect an M P — majority forms the central government.",
+      "Your glow-up to registered voter: check you qualify, fill Form 6 online at voters dot e c i dot gov dot in, a Booth Level Officer may verify your details, then you get your EPIC, your Voter ID.",
+      "Before any election, double check your name is on the roll, then bring your Voter ID to your booth and vote. It's a paid day off if you're working.",
+      "For documents, one per category: age proof like a birth certificate or Aadhaar, and address proof like Aadhaar, passport, or a utility bill.",
+      "For anything official, go to voters dot e c i dot gov dot in, or c e o dot karnataka dot gov dot in. The voter helpline is 1950, toll-free. Scroll down to make your milestone card."
+    ],
+    drive: [
+      "Turning 18 also means you can get your driving licence. Here's the full process, top driving schools nearby, and how to actually pass the test.",
+      "The DL journey has three stages: pass a rules quiz for your Learner's Licence, practice for at least thirty days, then pass the practical test for your permanent licence.",
+      "Apply for your LL online at sarathi dot parivahan dot gov dot in, take the rules quiz, then after thirty days book your driving test — an H pattern reverse, a figure eight, a gradient hold, and sometimes parallel parking.",
+      "Documents needed: age proof, address proof, photos, a self-declaration form, and a medical certificate if you're forty or older.",
+      "Five well-rated driving schools in Bengaluru: Friends Driving School, Sri Shivu Motor Driving School, Infinity Driving School, Lakshmi Motor Driving School, and Yashas Driving School — all rated four point nine or five out of five. Packages typically run four thousand to nine thousand rupees.",
+      "To pass the test: practice the figure eight and H reverse in an empty lot, work on clutch and brake balance on a slope, say your mirror checks out loud, and run through sign recognition mock tests the night before. Scroll down to make your milestone card once you're licensed."
+    ]
+  };
+
+  const synth = window.speechSynthesis;
+  let currentIndex = 0, isPlaying = false, currentRate = 1, utteranceQueue = [];
+  function currentChunks(){ return speechChunksByTab[activeTab]; }
+  function buildQueueFrom(startIndex){
+    const chunks = currentChunks();
+    utteranceQueue = chunks.slice(startIndex).map((text)=>{
+      const u = new SpeechSynthesisUtterance(text); u.rate = currentRate;
+      u.onend = () => {
+        currentIndex++; updateLabel();
+        if(isPlaying && currentIndex < chunks.length){ synth.speak(utteranceQueue[currentIndex-startIndex]); }
+        else if(currentIndex >= chunks.length){ isPlaying=false; currentIndex=0; updateToggleUI(); updateLabel(); }
+      };
+      return u;
+    });
+  }
+  function updateLabel(){ const c = currentChunks(); document.getElementById('listen-label').textContent = `Section ${Math.min(currentIndex+1,c.length)}/${c.length}`; }
+  function updateToggleUI(){ document.getElementById('listen-toggle').textContent = isPlaying?'❚❚':'▶'; }
+  function playFromCurrent(){ buildQueueFrom(currentIndex); isPlaying=true; updateToggleUI(); synth.speak(utteranceQueue[0]); }
+  function stopSpeech(){ synth.cancel(); isPlaying=false; updateToggleUI(); }
+  document.getElementById('listen-toggle').addEventListener('click', ()=>{
+    if(!isPlaying){ if(synth.paused && synth.speaking){ synth.resume(); isPlaying=true; updateToggleUI(); } else { playFromCurrent(); } }
+    else { synth.pause(); isPlaying=false; updateToggleUI(); }
+  });
+  document.querySelectorAll('.speed-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); currentRate = parseFloat(btn.dataset.rate);
+      if(isPlaying || (synth.speaking && !synth.paused)){ synth.cancel(); playFromCurrent(); }
+    });
+  });
+  updateLabel();
+</script>
+</body>
+</html>
